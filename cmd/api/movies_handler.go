@@ -3,6 +3,7 @@ package main
 import (
 	// "fmt"
 	"greenlight_gbolahan/internal/model"
+	"greenlight_gbolahan/internal/validator"
 	"net/http"
 	"time"
 )
@@ -20,6 +21,19 @@ func (app *application) createMovieHandler(w http.ResponseWriter, r *http.Reques
 
 	if err != nil {
 		app.badRequestResponse(w, r, err)
+		return
+	}
+	movie := &model.Movie{
+		Title:   input.Title,
+		Year:    input.Year,
+		Runtime: input.Runtime,
+		Genres:  input.Genres,
+	}
+
+	v := validator.New()
+
+	if model.ValidateMovie(v, movie); !v.Valid() {
+		app.failedValidationResponse(w, r, v.Errors)
 		return
 	}
 
