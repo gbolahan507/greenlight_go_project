@@ -42,9 +42,9 @@ func main() {
 	flag.StringVar(&cfg.env, "env", "development", "Enviroment(development|staging|production)")
 	flag.StringVar(&cfg.db.dsn, "db-dsn", "postgres://greenlight:pa55word@localhost/greenlight?sslmode=disable", "PostgreSQL DSN")
 
-	// flag.IntVar(&cfg.db.maxOpenConns, "db-dsn", 25, "PostgreSQL max open connections")
-	// flag.IntVar(&cfg.db.maxIdleConns, "db-dsn", 25, "PostgreSQL max Idle connections")
-	// flag.StringVar(&cfg.db.maxIdleTime, "db-dsn", "15m", "PostgreSQL max Idle connections time")
+	flag.IntVar(&cfg.db.maxOpenConns, "db-dsn", 25, "PostgreSQL max open connections")
+	flag.IntVar(&cfg.db.maxIdleConns, "db-dsn", 25, "PostgreSQL max Idle connections")
+	flag.StringVar(&cfg.db.maxIdleTime, "db-dsn", "15m", "PostgreSQL max Idle connections time")
 
 	flag.Parse()
 
