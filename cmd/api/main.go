@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"flag"
 	"fmt"
+	"greenlight_gbolahan/internal/data"
 	"log"
 	"net/http"
 	"os"
@@ -33,6 +34,7 @@ type config struct {
 type application struct {
 	config config
 	logger *log.Logger
+	models model.Models
 }
 
 func main() {
@@ -42,9 +44,9 @@ func main() {
 	flag.StringVar(&cfg.env, "env", "development", "Enviroment(development|staging|production)")
 	flag.StringVar(&cfg.db.dsn, "db-dsn", "postgres://greenlight:pa55word@localhost/greenlight?sslmode=disable", "PostgreSQL DSN")
 
-	flag.IntVar(&cfg.db.maxOpenConns, "db-dsn", 25, "PostgreSQL max open connections")
-	flag.IntVar(&cfg.db.maxIdleConns, "db-dsn", 25, "PostgreSQL max Idle connections")
-	flag.StringVar(&cfg.db.maxIdleTime, "db-dsn", "15m", "PostgreSQL max Idle connections time")
+	flag.IntVar(&cfg.db.maxOpenConns, "db-max-open-conns", 25, "PostgreSQL max open connections")
+	flag.IntVar(&cfg.db.maxIdleConns, "db-max-idle-conns", 25, "PostgreSQL max Idle connections")
+	flag.StringVar(&cfg.db.maxIdleTime, "db-max-idle-time", "15m", "PostgreSQL max Idle connections time")
 
 	flag.Parse()
 
@@ -59,7 +61,7 @@ func main() {
 	// Defer a call to db.Close() so that the connection pool is closed before the
 	// main() function exits.
 
-	defer db.Close()
+	// defer db.Close()
 
 	// Also log a message to say that the connection pool has been successfully
 	// established.
@@ -68,6 +70,7 @@ func main() {
 	app := &application{
 		config: cfg,
 		logger: logger,
+		models: model.NewModels(db),
 	}
 
 	route := app.routes()
