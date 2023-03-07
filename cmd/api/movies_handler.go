@@ -2,6 +2,7 @@ package main
 
 import (
 	// "fmt"
+	"database/sql"
 	"errors"
 	"fmt"
 	model "greenlight_gbolahan/internal/data"
@@ -48,7 +49,7 @@ func (app *application) createMovieHandler(w http.ResponseWriter, r *http.Reques
 	headers := make(http.Header)
 	headers.Set("Location", fmt.Sprintf("/v1/movie/%d", movie.ID))
 
-	err = app.writeJSON(w, http.StatusOK, envelope{"movie": input}, headers)
+	err = app.writeJSON(w, http.StatusOK, envelope{"movie": movie}, headers)
 
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
@@ -110,10 +111,10 @@ func (app *application) updateMovieHandler(w http.ResponseWriter, r *http.Reques
 	}
 
 	var input struct {
-		Title   string        `json:"title"`
-		Year    int32         `json:"year"`
-		Runtime model.Runtime `json:"runtime"`
-		Genres  []string      `json:"genres"`
+		Title   *string        `json:"title"`
+		Year    *int32         `json:"year"`
+		Runtime *model.Runtime `json:"runtime"`
+		Genres  []string       `json:"genres"`
 	}
 
 	err = app.readJSON(w, r, &input)
@@ -123,11 +124,19 @@ func (app *application) updateMovieHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	movie.Title = input.Title
-	movie.Year = input.Year
-	movie.Runtime = input.Runtime
-	movie.Genres = input.Genres
+	if input.Title != nil {
+		movie.Title = *input.Title
+	}
+	if input.Year != nil {
+		movie.Year = *input.Year
+	}
+	if input.Runtime != nil {
+		movie.Runtime = *input.Runtime
+	}
 
+	if input.Genres != nil {
+		movie.Genres = input.Genres
+	}
 	v := validator.New()
 
 	if model.ValidateMovie(v, movie); !v.Valid() {
@@ -138,7 +147,13 @@ func (app *application) updateMovieHandler(w http.ResponseWriter, r *http.Reques
 	err = app.models.Movies.Update(*movie)
 
 	if err != nil {
-		app.serverErrorResponse(w, r, err)
+
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			app.errorEditingConflictResponse(w, r)
+		default:
+			app.serverErrorResponse(w, r, err)
+		}
 		return
 	}
 
