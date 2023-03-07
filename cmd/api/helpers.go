@@ -4,8 +4,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"greenlight_gbolahan/internal/validator"
 	"io"
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 
@@ -130,4 +132,52 @@ func (app *application) readJSON(w http.ResponseWriter, r *http.Request, data an
 	}
 	return nil
 
+}
+
+// The readString() helper returns a string value from the query string, or the provided
+// default value if no matching key could be found.
+func (app *application) readString(qs url.Values, key string, defaultvalue string) string {
+
+	s := qs.Get(key)
+
+	if s == "" {
+		return defaultvalue
+	}
+
+	return s
+
+}
+
+// The readCSV() helper reads a string value from the query string and then splits it
+// into a slice on the comma character. If no matching key could be found, it returns
+// the provided default value.
+
+func (app *application) readCSV(qs url.Values, key string, defaultvalues []string) []string {
+	csv := qs.Get(key)
+
+	if csv == "" {
+		return defaultvalues
+	}
+
+	return strings.Split(csv, ",")
+}
+
+// Try to convert the value to an int. If this fails, add an error message to the
+// validator instance and return the default value.
+func (app *application) readInt(qs url.Values, key string, defaultvalues int, v *validator.Validator) int {
+
+	s := qs.Get(key)
+
+	if s == "" {
+		return defaultvalues
+	}
+
+	i, err := strconv.Atoi(s)
+
+	if err != nil {
+		v.AddError(key, "must be an integer value")
+		return defaultvalues
+	}
+
+	return i
 }
