@@ -14,6 +14,9 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
+
+// function to extract id from url
+
 func (app *application) readIDParam(r *http.Request) (int64, error) {
 	params := httprouter.ParamsFromContext(r.Context())
 
