@@ -53,9 +53,30 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 		}
 		return
 	}
+
+	// Launch a goroutine which runs an anonymous function that sends the welcome email.
+
+	// 	When this code is executed now, a new ‘background’ goroutine will be launched for sending
+	// the welcome email. The code in this background goroutine will be executed concurrently
+	// with the subsequent code in our registerUserHandler, which means we are no longer
+	// waiting for the email to be sent before we return a JSON response to the client. Most likely,
+	// the background goroutine will still be executing its code long after the
+	// registerUserHandler has returned.
+
+	go func() {
+		err = app.mailer.Send(user.Email, "user_welcome.tmpl", user)
+		if err != nil {
+			app.logger.PrintError(err, nil)
+			return
+		}
+
+	}()
 	// Write a JSON response containing the user data along with a 201 Created status
 	// code.
-	err = app.writeJSON(w, http.StatusCreated, envelope{"user": user}, nil)
+	// This status code indicates that the request has been accepted for processing, but
+	// the processing has not been completed because a bockground goroutine still needs to run 
+	// for welcomming mail
+	err = app.writeJSON(w, http.StatusAccepted, envelope{"user": user}, nil)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 	}

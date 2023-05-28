@@ -4,6 +4,7 @@ import (
 	// "flag"
 	model "greenlight_gbolahan/internal/data"
 	"greenlight_gbolahan/internal/jsonlog"
+	"greenlight_gbolahan/internal/mailer"
 	"log"
 	"os"
 
@@ -28,12 +29,20 @@ type config struct {
 		burst   int
 		enabled bool
 	}
+	smtp struct {
+		host     string
+		port     int
+		sender   string
+		password string
+		username string
+	}
 }
 
 type application struct {
 	config config
 	logger *jsonlog.Logger
 	models model.Models
+	mailer mailer.Mailer
 }
 
 func main() {
@@ -43,7 +52,6 @@ func main() {
 	logger := jsonlog.New(os.Stdout, jsonlog.LevelInfo)
 
 	db, err := openDB(cfg)
-
 
 	if err != nil {
 		logger.PrintFatal(err, nil)
@@ -56,6 +64,7 @@ func main() {
 		config: cfg,
 		logger: logger,
 		models: model.NewModels(db),
+		mailer: mailer.New(cfg.smtp.host, cfg.smtp.port, cfg.smtp.username, cfg.smtp.password, cfg.smtp.sender),
 	}
 
 	err = app.serve()

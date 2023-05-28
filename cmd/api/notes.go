@@ -11,6 +11,8 @@ package main
 
 // go run ./cmd/api -port=3030 -env=production
 
+// go run ./cmd/api
+
 // Read on
 
 // json decoding nuances   pg 80
